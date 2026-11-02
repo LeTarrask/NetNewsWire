@@ -1,0 +1,23 @@
+{
+  "lexicon": 1,
+  "id": "io.github.letarrask.reader.share",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "An article a person shared from their feed reader, in the spirit of Google Reader's shared items.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["url", "createdAt"],
+        "properties": {
+          "url": { "type": "string", "format": "uri", "description": "Canonical URL of the article." },
+          "title": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 },
+          "feedURL": { "type": "string", "format": "uri", "description": "Feed the article came from, so friends can subscribe." },
+          "feedTitle": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 },
+          "comment": { "type": "string", "maxLength": 3000, "maxGraphemes": 300, "description": "Optional note from the sharer." },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}

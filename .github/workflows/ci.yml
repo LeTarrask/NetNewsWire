@@ -27,6 +27,19 @@ jobs:
       - name: Run SwiftLint
         run: swiftlint lint --strict --reporter github-actions-logging
 
+  atshare-tests:
+    name: ATShare Package Tests
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Select Xcode 26.6
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app/Contents/Developer
+
+      - name: Run ATShare tests
+        run: swift test --package-path Modules/ATShare
+
   macos-tests:
     name: macOS Tests
     runs-on: macos-26
