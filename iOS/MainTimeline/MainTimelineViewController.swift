@@ -599,8 +599,15 @@ extension MainTimelineViewController: UICollectionViewDelegate {
 				menuElements.append(UIMenu(title: "", options: .displayInline, children: [action]))
 			}
 
+			var shareActions = [UIAction]()
 			if let action = self.shareAction(article, indexPath: firstIndex) {
-				menuElements.append(UIMenu(title: "", options: .displayInline, children: [action]))
+				shareActions.append(action)
+			}
+			if let action = self.shareWithFriendsAction(article) {
+				shareActions.append(action)
+			}
+			if !shareActions.isEmpty {
+				menuElements.append(UIMenu(title: "", options: .displayInline, children: shareActions))
 			}
 
 			return UIMenu(title: "", children: menuElements)
@@ -1481,6 +1488,22 @@ extension MainTimelineViewController {
 		let title = NSLocalizedString("Share", comment: "Share button")
 		let action = UIAction(title: title, image: Assets.Images.share) { [weak self] _ in
 			self?.shareDialogForTableCell(indexPath: indexPath, url: url, title: article.title)
+		}
+		return action
+	}
+
+	func shareWithFriendsAction(_ article: Article) -> UIAction? {
+		guard FriendsSharing.canShare(article) else {
+			return nil
+		}
+		let action = UIAction(title: FriendsSharing.shareCommandTitle, image: UIImage(systemName: "person.2")) { [weak self] _ in
+			Task {
+				do {
+					try await FriendsSharing.share(article)
+				} catch {
+					self?.presentError(error)
+				}
+			}
 		}
 		return action
 	}

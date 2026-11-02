@@ -489,6 +489,9 @@ private extension LocalAccountRefresher {
 
 	/// Returns whether this feed should be skipped and the reason if so.
 	static func feedShouldBeSkipped(_ feed: Feed, _ specialCaseCutoffDate: Date, _ redditURLToRefresh: String?) -> (Bool, String?) {
+		if SocialSharing.isFriendsFeedURL(feed.url) {
+			return (true, "Skipped — the Friends feed is refreshed from Bluesky")
+		}
 		let (skipForCacheControl, cacheControlReason) = feedShouldBeSkippedForCacheControlReasons(feed)
 		if skipForCacheControl {
 			return (true, cacheControlReason)

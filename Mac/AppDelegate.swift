@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import SwiftUI
 import UserNotifications
 import os
 import Articles
@@ -95,6 +96,7 @@ let appName = "NetNewsWire"
 	private var activityLogWindowController: ActivityLogWindowController?
 	private var errorLogWindowController: ErrorLogWindowController?
 	private var dinosaurWindowController: DinosaursWindowController?
+	private var blueskySharingWindowController: NSWindowController?
 	private var crashReportWindowController: CrashReportWindowController? // For testing only
 	private var cloudKitStatsWindowController: CloudKitStatsWindowController?
 	private var accountStatsWindowController: AccountStatsWindowController?
@@ -164,6 +166,9 @@ let appName = "NetNewsWire"
 	}
 
 	func applicationDidFinishLaunching(_ note: Notification) {
+
+		addBlueskySharingMenuItem()
+		_ = SocialSharing.shared // Starts listening for refreshes so the Friends feed stays current.
 
 		WebViewConfiguration.resolveBrowserUserAgent()
 		Task {
@@ -612,6 +617,30 @@ let appName = "NetNewsWire"
 		}
 		mainWindowController.showWindow(self)
 		mainWindowController.selectFeedInSidebar(feed)
+	}
+
+	@IBAction func showBlueskySharingWindow(_ sender: Any?) {
+		if blueskySharingWindowController == nil {
+			let hostingController = NSHostingController(rootView: BlueskySharingView().frame(minWidth: 420, minHeight: 260))
+			let window = NSWindow(contentViewController: hostingController)
+			window.title = NSLocalizedString("Bluesky Sharing", comment: "Title of the Bluesky sharing window")
+			window.styleMask = [.titled, .closable]
+			blueskySharingWindowController = NSWindowController(window: window)
+		}
+		blueskySharingWindowController?.showWindow(self)
+		blueskySharingWindowController?.window?.center()
+	}
+
+	/// Adds “Bluesky Sharing…” to the app menu, below Settings.
+	func addBlueskySharingMenuItem() {
+		guard let appMenu = NSApplication.shared.mainMenu?.items.first?.submenu else {
+			return
+		}
+		let title = NSLocalizedString("Bluesky Sharing…", comment: "App menu command that opens Bluesky sharing settings")
+		let item = NSMenuItem(title: title, action: #selector(showBlueskySharingWindow(_:)), keyEquivalent: "")
+		item.target = self
+		let settingsIndex = appMenu.items.firstIndex { $0.action == #selector(showPreferences(_:)) }
+		appMenu.insertItem(item, at: (settingsIndex ?? 1) + 1)
 	}
 
 	@IBAction func showActivityWindow(_ sender: Any?) {

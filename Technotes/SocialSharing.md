@@ -21,17 +21,27 @@ A Foundation-only package with no dependencies.
 - `DIDResolver` looks up a DID (did:plc or did:web) to find its PDS, so reads go straight to each friend's server.
 - `FriendsTimeline` fetches the follows, reads each one's recent shares (8 at a time), and returns them newest first. Friends with no shares or a failing server are skipped.
 
-## Status
+## How it’s wired into the app
 
-The module is a prototype. It hasn't been compiled yet because it was written without Xcode, and it hasn't been run against a live PDS. The next steps are:
+- **`SocialSharing`** (`Modules/Account/Sources/Account/Social/`) is the app-facing API. It handles Bluesky sign-in and sign-out, saves the session in the Keychain (`CredentialsType.atprotoSession`), shares articles, and keeps the Friends feed filled. The app imports only `Account`, so the Xcode project needed no changes: `Account` depends on `ATShare` in its `Package.swift`.
+- **Friends feed**: when you sign in, a feed named “Friends” with the URL `atshare://friends` is added to the On My Mac account. `LocalAccountRefresher` skips that URL. After each refresh of the local account (and right after sign-in), `SocialSharing.refreshFriends()` fetches your follows’ shares and saves them as articles in that feed. Because it’s an ordinary feed, the timeline, unread counts, starring, and search all work unchanged. Each article says who shared it and which feed it came from, and links to the original.
+- **Share with Friends**: available in the timeline context menu on both Mac and iOS when you’re signed in. Errors (wrong password, rate limits) appear as a normal alert.
+- **Sign-in UI**: a shared SwiftUI view, `Shared/Social/BlueskySharingView.swift`. On the Mac it’s under NetNewsWire menu → Bluesky Sharing…, and on iOS under Settings → Accounts → Bluesky Sharing.
 
-1. **Build and test**: open the Xcode project, add `Modules/ATShare` as a local package (File → Add Package Dependencies → Add Local), and run `swift test` in `Modules/ATShare`.
-2. **Manual smoke test**: create an app password in Bluesky (Settings → Privacy and security → App passwords), call `ATClient.signIn`, then `share(...)`. Check the record at `https://<pds>/xrpc/com.atproto.repo.listRecords?repo=<did>&collection=io.github.letarrask.reader.share`.
-3. **Integration (step 3 of the plan)**:
-   - Store `ATSession` in the Keychain through the `Secrets` module.
-   - Add a "Share" action next to Star in the article toolbar on Mac and iOS. Keep it separate from Star, so starring stays private by default.
-   - Add a "Friends" smart feed modeled on `Shared/SmartFeeds/StarredFeedDelegate.swift`, backed by a local cache of `FriendsTimeline` results that's updated on each refresh.
-   - Add a Bluesky sign-in screen in Settings → Accounts.
+## Trying it in Xcode
+
+1. Build and run as usual. The new files are picked up automatically by the synchronized `Shared`, `Mac`, and `iOS` groups.
+2. In Bluesky, create an app password (Settings → Privacy and security → App passwords).
+3. Open Bluesky Sharing, sign in with your handle and the app password. A Friends feed appears in the sidebar under On My Mac.
+4. Right-click (or long-press on iOS) any article and choose Share with Friends. Check the record at `https://<your pds>/xrpc/com.atproto.repo.listRecords?repo=<your did>&collection=io.github.letarrask.reader.share`.
+5. Have a friend do the same. Their shares appear in your Friends feed after the next refresh, or right away if you press Refresh Friends Now.
+
+## Known limitations
+
+- The Friends feed only lives in the On My Mac account. If that account is turned off, there’s nowhere to put it.
+- You can’t un-share from the UI yet. `ATClient.unshare(recordKey:)` exists, but nothing calls it.
+- There’s no comment field yet, even though the record supports one.
+- Each refresh makes one request per account you follow. That’s fine for a few hundred follows.
 
 ## Open questions
 
