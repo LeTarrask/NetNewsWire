@@ -132,7 +132,7 @@ public actor ATClient {
 	}
 
 	private func refresh(_ current: ATSession) async throws -> ATSession {
-		let data = try await post(current.pdsURL, "com.atproto.server.refreshSession", json: Optional<String>.none, token: current.refreshJwt)
+		let data = try await post(current.pdsURL, "com.atproto.server.refreshSession", json: nil as String?, token: current.refreshJwt)
 		let response = try JSONDecoder().decode(SessionResponse.self, from: data)
 		let refreshed = ATSession(did: response.did,
 		                          handle: response.handle,
