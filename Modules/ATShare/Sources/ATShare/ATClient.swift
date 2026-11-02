@@ -20,7 +20,7 @@ public actor ATClient {
 
 	public init(session: ATSession? = nil,
 	            urlSession: URLSession = .shared,
-	            appView: URL = URL(string: "https://public.api.bsky.app")!,
+	            appView: URL = ATEndpoint.publicAppView,
 	            onSessionChange: @escaping @Sendable (ATSession?) -> Void = { _ in }) {
 		self.session = session
 		self.urlSession = urlSession
@@ -34,7 +34,7 @@ public actor ATClient {
 	/// Signs in with a handle (or email) and an app password, which the user creates in Bluesky settings.
 	/// `service` is where the account lives; bsky.social works for every Bluesky-hosted account.
 	@discardableResult
-	public func signIn(identifier: String, appPassword: String, service: URL = URL(string: "https://bsky.social")!) async throws -> ATSession {
+	public func signIn(identifier: String, appPassword: String, service: URL = ATEndpoint.bskySocial) async throws -> ATSession {
 		let body = ["identifier": identifier, "password": appPassword]
 		let data = try await post(service, "com.atproto.server.createSession", json: body, token: nil)
 		let response = try JSONDecoder().decode(SessionResponse.self, from: data)
@@ -159,9 +159,14 @@ public actor ATClient {
 	}
 
 	private func get(_ host: URL, _ method: String, query: [URLQueryItem]) async throws -> Data {
-		var components = URLComponents(url: xrpcURL(host, method), resolvingAgainstBaseURL: false)!
+		guard var components = URLComponents(url: xrpcURL(host, method), resolvingAgainstBaseURL: false) else {
+			throw ATShareError.invalidURL
+		}
 		components.queryItems = query
-		let (data, response) = try await urlSession.data(from: components.url!)
+		guard let url = components.url else {
+			throw ATShareError.invalidURL
+		}
+		let (data, response) = try await urlSession.data(from: url)
 		try ATShareError.check(response, data: data)
 		return data
 	}

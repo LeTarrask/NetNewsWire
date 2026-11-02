@@ -31,7 +31,7 @@ public struct DIDResolver: Sendable {
 	let session: URLSession
 	let plcDirectory: URL
 
-	public init(session: URLSession = .shared, plcDirectory: URL = URL(string: "https://plc.directory")!) {
+	public init(session: URLSession = .shared, plcDirectory: URL = ATEndpoint.plcDirectory) {
 		self.session = session
 		self.plcDirectory = plcDirectory
 	}

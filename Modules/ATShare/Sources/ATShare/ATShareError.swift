@@ -12,6 +12,7 @@ public enum ATShareError: Error, Sendable, Equatable {
 	/// XRPC error, e.g. "ExpiredToken" or "InvalidRequest".
 	case xrpc(status: Int, error: String?, message: String?)
 	case badResponse
+	case invalidURL
 
 	struct XRPCErrorBody: Decodable {
 		let error: String?
