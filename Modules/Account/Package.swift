@@ -23,7 +23,8 @@ let package = Package(
 		.package(path: "../RSParser"),
 		.package(path: "../RSCore"),
 		.package(path: "../RSDatabase"),
-		.package(path: "../NewsBlur")
+		.package(path: "../NewsBlur"),
+		.package(path: "../ATShare")
 	],
 	targets: [
 		.target(
@@ -41,7 +42,8 @@ let package = Package(
 				"FeedFinder",
 				"Secrets",
 				"SyncDatabase",
-				"NewsBlur"
+				"NewsBlur",
+				"ATShare"
 			],
 			swiftSettings: [
 				.enableUpcomingFeature("NonisolatedNonsendingByDefault"),

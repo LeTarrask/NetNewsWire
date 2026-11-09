@@ -107,6 +107,19 @@ extension TimelineViewController {
 		URLPasteboardWriter.write(urlString: urlString, to: .general)
 	}
 
+	@objc func shareWithFriendsFromContextualMenu(_ sender: Any?) {
+		guard let menuItem = sender as? NSMenuItem, let article = menuItem.representedObject as? Article else {
+			return
+		}
+		Task {
+			do {
+				try await FriendsSharing.share(article)
+			} catch {
+				NSApplication.shared.presentError(error)
+			}
+		}
+	}
+
 	@objc func performShareServiceFromContextualMenu(_ sender: Any?) {
 		guard let menuItem = sender as? NSMenuItem, let sharingCommandInfo = menuItem.representedObject as? SharingCommandInfo else {
 			return
@@ -197,6 +210,10 @@ private extension TimelineViewController {
 		shareButtonMenuItem.representedObject = articles
 		menu.addItem(shareButtonMenuItem)
 		shareButtonMenuItem.isEnabled = !articles.isEmpty
+
+		if articles.count == 1, let article = articles.first, FriendsSharing.canShare(article) {
+			menu.addItem(menuItem(FriendsSharing.shareCommandTitle, #selector(shareWithFriendsFromContextualMenu(_:)), article))
+		}
 
 		return menu
 	}

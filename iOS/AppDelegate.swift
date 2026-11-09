@@ -109,6 +109,8 @@ import Images
 		ArticleStatusSyncTimer.shared.update()
 		#endif
 
+		_ = SocialSharing.shared // Starts listening for refreshes so the Friends feed stays current.
+
 		return true
 
 	}

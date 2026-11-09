@@ -179,7 +179,7 @@ final class SettingsViewController: UITableViewController {
 
 		switch Section(rawValue: section) {
 		case .accounts:
-			return AccountManager.shared.accounts.count + 1
+			return AccountManager.shared.accounts.count + 2 // Accounts, Add Account, Bluesky Sharing
 		case .feeds:
 			let defaultNumberOfRows = super.tableView(tableView, numberOfRowsInSection: section)
 			if AccountManager.shared.activeAccounts.isEmpty || AccountManager.shared.anyAccountHasNetNewsWireNewsSubscription() {
@@ -210,6 +210,9 @@ final class SettingsViewController: UITableViewController {
 			if indexPath.row == sortedAccounts.count {
 				cell = tableView.dequeueReusableCell(withIdentifier: "SettingsTableViewCell", for: indexPath)
 				cell.textLabel?.text = NSLocalizedString("Add Account", comment: "Add Account")
+			} else if indexPath.row == sortedAccounts.count + 1 {
+				cell = tableView.dequeueReusableCell(withIdentifier: "SettingsTableViewCell", for: indexPath)
+				cell.textLabel?.text = NSLocalizedString("Bluesky Sharing", comment: "Settings row that opens Bluesky sharing")
 			} else {
 				let acctCell = tableView.dequeueReusableCell(withIdentifier: "SettingsComboTableViewCell", for: indexPath) as! SettingsComboTableViewCell
 				acctCell.applyThemeProperties()
@@ -239,6 +242,8 @@ final class SettingsViewController: UITableViewController {
 					self?.navigationController?.popViewController(animated: false)
 				}
 				self.navigationController?.pushViewController(UIHostingController(rootView: addAccountView), animated: true)
+			} else if indexPath.row == sortedAccounts.count + 1 {
+				self.navigationController?.pushViewController(UIHostingController(rootView: BlueskySharingView()), animated: true)
 			} else {
 				let controller = UIStoryboard.inspector.instantiateController(ofType: AccountInspectorViewController.self)
 				controller.account = sortedAccounts[indexPath.row]
