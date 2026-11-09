@@ -14,15 +14,24 @@ permissions:
   contents: read
 
 jobs:
+  # Linting doesn't need a Mac, and macOS runners are scarce: run it on Linux
+  # so it never waits in the macOS queue.
   swiftlint:
     name: SwiftLint
-    runs-on: macos-26
+    runs-on: ubuntu-latest
+    env:
+      SWIFTLINT_VERSION: 0.62.2
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Install SwiftLint
-        run: brew install swiftlint
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/swiftlint.zip" "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/swiftlint_linux_amd64.zip"
+          unzip -q "$RUNNER_TEMP/swiftlint.zip" -d "$RUNNER_TEMP/swiftlint"
+          chmod +x "$RUNNER_TEMP/swiftlint/swiftlint"
+          echo "$RUNNER_TEMP/swiftlint" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/swiftlint/swiftlint" version
 
       - name: Run SwiftLint
         run: swiftlint lint --strict --reporter github-actions-logging
@@ -87,6 +96,10 @@ jobs:
 
   ios-simulator-tests:
     name: iOS Simulator Tests
+    # Start after the macOS tests so at most two macOS jobs queue at once.
+    # With three in parallel, GitHub has been dropping one for lack of
+    # macOS arm64 capacity ("job was not acquired by Runner").
+    needs: macos-tests
     runs-on: macos-26
     steps:
       - name: Checkout
